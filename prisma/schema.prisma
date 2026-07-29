@@ -5,9 +5,146 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships FamilyMember[]
+  feedings    Feeding[]
+  diapers     DiaperChange[]
+  sleeps      SleepSession[]
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members FamilyMember[]
+  babies  Baby[]
+}
+
+model FamilyMember {
+  id       String @id @default(cuid())
+
+  userId   String
+  familyId String
+
+  role FamilyRole @default(PARENT)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, familyId])
+}
+
+model Baby {
+  id        String   @id @default(cuid())
+
+  familyId  String
+
+  firstName String
+  birthDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  feedings Feeding[]
+  diapers  DiaperChange[]
+  sleeps   SleepSession[]
+}
+
+model Feeding {
+  id String @id @default(cuid())
+
+  babyId    String
+  createdBy String
+
+  type FeedingType
+
+  /// uniquement pour les biberons
+  quantityMl Int?
+
+  occurredAt DateTime
+
+  notes String?
+
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([babyId, occurredAt])
+}
+
+model SleepSession {
+  id String @id @default(cuid())
+
+  babyId    String
+  createdBy String
+
+  startAt DateTime
+  endAt   DateTime?
+
+  notes String?
+
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([babyId, startAt])
+}
+
+model DiaperChange {
+  id String @id @default(cuid())
+
+  babyId    String
+  createdBy String
+
+  type DiaperType
+
+  occurredAt DateTime
+
+  notes String?
+
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([babyId, occurredAt])
+}
+
+enum FeedingType {
+  BOTTLE
+  BREAST
+}
+
+enum DiaperType {
+  PEE
+  POOP
+  BOTH
+}
+
+enum FamilyRole {
+  PARENT
+  ADMIN
 }
