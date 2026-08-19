@@ -3,23 +3,23 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-bbtracker}
-      POSTGRES_USER: ${POSTGRES_USER:-bbtracker}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bbtracker_local}
+      POSTGRES_DB: ${POSTGRES_DB:-nidoo}
+      POSTGRES_USER: ${POSTGRES_USER:-nidoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nidoo_local}
     ports:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bbtracker} -d ${POSTGRES_DB:-bbtracker}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nidoo} -d ${POSTGRES_DB:-nidoo}"]
       interval: 5s
       timeout: 5s
       retries: 10
-    networks: [bbtracker_network]
+    networks: [nidoo_network]
 
 volumes:
   postgres_data:
 
 networks:
-  bbtracker_network:
+  nidoo_network:
     driver: bridge

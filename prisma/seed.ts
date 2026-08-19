@@ -1,21 +1,25 @@
 import { PrismaClient } from "../src/generated/prisma/client";
-import { DiaperType, FeedingType, FamilyRole } from "../src/generated/prisma/enums";
+import {
+	DiaperType,
+	FeedingType,
+	FamilyRole,
+	BabySex,
+} from "../src/generated/prisma/enums";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({
-	connectionString: process.env.DATABASE_URL,
+	connectionString: process.env.DATABASE_URL!,
 });
+
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-	const family = await prisma.family.create({
-		data: {
-			name: "Famille Martin",
+	const papa = await prisma.user.upsert({
+		where: {
+			email: "papa@test.fr",
 		},
-	});
-
-	const papa = await prisma.user.create({
-		data: {
+		update: {},
+		create: {
 			email: "papa@test.fr",
 			password: "password",
 			firstName: "Thomas",
@@ -23,12 +27,22 @@ async function main() {
 		},
 	});
 
-	const maman = await prisma.user.create({
-		data: {
+	const maman = await prisma.user.upsert({
+		where: {
+			email: "maman@test.fr",
+		},
+		update: {},
+		create: {
 			email: "maman@test.fr",
 			password: "password",
 			firstName: "Julie",
 			lastName: "Martin",
+		},
+	});
+
+	const family = await prisma.family.create({
+		data: {
+			name: "Famille Martin",
 		},
 	});
 
@@ -52,6 +66,7 @@ async function main() {
 			familyId: family.id,
 			firstName: "Léo",
 			birthDate: new Date("2026-07-10"),
+			sex: BabySex.MALE,
 		},
 	});
 
@@ -63,7 +78,6 @@ async function main() {
 		return d;
 	};
 
-	// Repas
 	await prisma.feeding.createMany({
 		data: [
 			{
@@ -77,6 +91,7 @@ async function main() {
 				babyId: baby.id,
 				createdBy: papa.id,
 				type: FeedingType.BREAST,
+				quantityMl: null,
 				occurredAt: at(10, 20),
 			},
 			{
@@ -89,7 +104,6 @@ async function main() {
 		],
 	});
 
-	// Sommeil
 	await prisma.sleepSession.createMany({
 		data: [
 			{
@@ -107,7 +121,6 @@ async function main() {
 		],
 	});
 
-	// Couches
 	await prisma.diaperChange.createMany({
 		data: [
 			{
@@ -135,7 +148,10 @@ async function main() {
 }
 
 main()
-	.catch(console.error)
+	.catch((error) => {
+		console.error("❌ Erreur pendant le seed :", error);
+		process.exit(1);
+	})
 	.finally(async () => {
 		await prisma.$disconnect();
 	});

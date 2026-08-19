@@ -7,6 +7,9 @@ CREATE TYPE "DiaperType" AS ENUM ('PEE', 'POOP', 'BOTH');
 -- CreateEnum
 CREATE TYPE "FamilyRole" AS ENUM ('PARENT', 'ADMIN');
 
+-- CreateEnum
+CREATE TYPE "BabySex" AS ENUM ('MALE', 'FEMALE', 'OTHER');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -41,11 +44,28 @@ CREATE TABLE "FamilyMember" (
 );
 
 -- CreateTable
+CREATE TABLE "FamilyInvitation" (
+    "id" TEXT NOT NULL,
+    "familyId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" "FamilyRole" NOT NULL DEFAULT 'PARENT',
+    "token" TEXT NOT NULL,
+    "invitedById" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "acceptedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "FamilyInvitation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Baby" (
     "id" TEXT NOT NULL,
     "familyId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "birthDate" TIMESTAMP(3),
+    "sex" "BabySex",
+    "photoUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -62,6 +82,7 @@ CREATE TABLE "Feeding" (
     "occurredAt" TIMESTAMP(3) NOT NULL,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Feeding_pkey" PRIMARY KEY ("id")
 );
@@ -75,6 +96,7 @@ CREATE TABLE "SleepSession" (
     "endAt" TIMESTAMP(3),
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "SleepSession_pkey" PRIMARY KEY ("id")
 );
@@ -88,6 +110,7 @@ CREATE TABLE "DiaperChange" (
     "occurredAt" TIMESTAMP(3) NOT NULL,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "DiaperChange_pkey" PRIMARY KEY ("id")
 );
@@ -96,7 +119,19 @@ CREATE TABLE "DiaperChange" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
+CREATE INDEX "FamilyMember_familyId_idx" ON "FamilyMember"("familyId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "FamilyMember_userId_familyId_key" ON "FamilyMember"("userId", "familyId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FamilyInvitation_token_key" ON "FamilyInvitation"("token");
+
+-- CreateIndex
+CREATE INDEX "FamilyInvitation_email_idx" ON "FamilyInvitation"("email");
+
+-- CreateIndex
+CREATE INDEX "FamilyInvitation_familyId_idx" ON "FamilyInvitation"("familyId");
 
 -- CreateIndex
 CREATE INDEX "Feeding_babyId_occurredAt_idx" ON "Feeding"("babyId", "occurredAt");
@@ -112,6 +147,12 @@ ALTER TABLE "FamilyMember" ADD CONSTRAINT "FamilyMember_userId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "FamilyMember" ADD CONSTRAINT "FamilyMember_familyId_fkey" FOREIGN KEY ("familyId") REFERENCES "Family"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FamilyInvitation" ADD CONSTRAINT "FamilyInvitation_familyId_fkey" FOREIGN KEY ("familyId") REFERENCES "Family"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FamilyInvitation" ADD CONSTRAINT "FamilyInvitation_invitedById_fkey" FOREIGN KEY ("invitedById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Baby" ADD CONSTRAINT "Baby_familyId_fkey" FOREIGN KEY ("familyId") REFERENCES "Family"("id") ON DELETE CASCADE ON UPDATE CASCADE;

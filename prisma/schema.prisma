@@ -13,8 +13,8 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String  @id @default(cuid())
+  email     String  @unique
   password  String
   firstName String?
   lastName  String?
@@ -23,43 +23,76 @@ model User {
   updatedAt DateTime @updatedAt
 
   memberships FamilyMember[]
-  feedings    Feeding[]
-  diapers     DiaperChange[]
-  sleeps      SleepSession[]
+
+  feedings Feeding[]
+  diapers  DiaperChange[]
+  sleeps   SleepSession[]
+
+  invitationsSent FamilyInvitation[] @relation("InvitationSender")
 }
 
 model Family {
-  id        String   @id @default(cuid())
-  name      String
+  id   String @id @default(cuid())
+  name String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members FamilyMember[]
-  babies  Baby[]
+  members     FamilyMember[]
+  babies      Baby[]
+  invitations FamilyInvitation[]
 }
 
 model FamilyMember {
-  id       String @id @default(cuid())
+  id String @id @default(cuid())
 
   userId   String
   familyId String
 
   role FamilyRole @default(PARENT)
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, familyId])
+  @@index([familyId])
+}
+
+model FamilyInvitation {
+  id String @id @default(cuid())
+
+  familyId String
+
+  email String
+
+  role FamilyRole @default(PARENT)
+
+  token String @unique
+
+  invitedById String
+
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  invitedBy User @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([familyId])
 }
 
 model Baby {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  familyId  String
+  familyId String
 
   firstName String
   birthDate DateTime?
+
+  sex      BabySex?
+  photoUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,17 +112,17 @@ model Feeding {
 
   type FeedingType
 
-  /// uniquement pour les biberons
   quantityMl Int?
 
   occurredAt DateTime
 
   notes String?
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
   user User @relation(fields: [createdBy], references: [id])
-
-  createdAt DateTime @default(now())
 
   @@index([babyId, occurredAt])
 }
@@ -105,10 +138,11 @@ model SleepSession {
 
   notes String?
 
-  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [createdBy], references: [id])
-
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  baby Baby @relation(fields: [babyId], references: [id],onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id] )
 
   @@index([babyId, startAt])
 }
@@ -125,10 +159,11 @@ model DiaperChange {
 
   notes String?
 
-  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [createdBy], references: [id])
-
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  baby Baby @relation(fields: [babyId], references: [id],onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
 
   @@index([babyId, occurredAt])
 }
@@ -147,4 +182,10 @@ enum DiaperType {
 enum FamilyRole {
   PARENT
   ADMIN
+}
+
+enum BabySex {
+  MALE
+  FEMALE
+  OTHER
 }
