@@ -41,9 +41,19 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 		}),
 	],
 	callbacks: {
-		authorized: async ({ auth }) => {
-			// Logged in users are authenticated, otherwise redirect to login page
-			return !!auth;
+		authorized: async ({ auth, request }) => {
+			const pathname = request.nextUrl.pathname;
+			const isLoggedIn = !!auth?.user;
+
+			const publicRoutes = ["/login", "/register", "/forgot-password"];
+
+			const isPublicRoute = publicRoutes.includes(pathname);
+
+			if (isPublicRoute) {
+				return true;
+			}
+
+			return isLoggedIn;
 		},
 	},
 });
