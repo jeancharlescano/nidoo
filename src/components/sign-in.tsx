@@ -11,10 +11,11 @@ export default function SignIn() {
 				try {
 					formData.append("redirectTo", "/dashboard");
 					console.log("🚀 ~ SignIn ~ formData:", formData);
-					await signIn("credentials", formData);
+					await signIn("credentialsProvider", formData);
 				} catch (error) {
-					if (error instanceof AuthError)
+					if (error instanceof AuthError) {
 						return redirect("/login?error=CredentialsSignin");
+					}
 					throw error;
 				}
 			}}

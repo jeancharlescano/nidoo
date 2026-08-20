@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import { signInSchema } from "./lib/zod";
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
+	pages: {
+		signIn: "/login",
+	},
 	providers: [
 		Credentials({
 			id: "credentialsProvider",
@@ -14,7 +17,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 				password: { label: "password", type: "password" },
 			},
 			async authorize(credentials) {
-				console.log("🚀 ~ credentials:", credentials)
+				console.log("🚀 ~ credentials:", credentials);
 				if (!credentials) return null;
 
 				const { email, password: inputPassword } =
@@ -26,17 +29,21 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 					},
 				});
 
-				console.log("🚀 ~ user:", user)
-				if (!user || !(await bcrypt.compare(inputPassword, user.password)))
-					return null;
+				console.log("🚀 ~ user:", user);
+				// if (!user || !(await bcrypt.compare(inputPassword, user.password)))
+				// 	return null;
+				if (!user || inputPassword !== user.password) return null;
 
 				const { password, ...userWithoutPassword } = user;
-				console.log("🚀 ~ userWithoutPassword:", userWithoutPassword)
+				console.log("🚀 ~ userWithoutPassword:", userWithoutPassword);
 				return userWithoutPassword;
 			},
 		}),
 	],
-	pages: {
-		signIn: "/login",
+	callbacks: {
+		authorized: async ({ auth }) => {
+			// Logged in users are authenticated, otherwise redirect to login page
+			return !!auth;
+		},
 	},
 });
