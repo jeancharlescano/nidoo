@@ -1,5 +1,5 @@
 import IntroHeader from "@/components/IntroHeader";
-import SignIn from "@/components/sign-in";
+import SignInForm from "@/components/auth/SignInForm";
 // export const dynamic = "force-dynamic";
 export default async function Login({
 	searchParams,
@@ -19,7 +19,7 @@ export default async function Login({
 					Email ou mot de passe incorrect.
 				</p>
 			)}
-			<SignIn />
+			<SignInForm />
 			<div className="bg-[#EAF4EE] w-full p-4 rounded-xl ">
 				<p className="text-sm font-bold mb-2">🍼 1 clic = 1 action</p>
 				<p className="text-sm font-medium text-[#6B7280]">
