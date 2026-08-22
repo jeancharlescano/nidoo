@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #F8FAF8;
   --foreground: #171717;
 }
 
@@ -17,6 +17,10 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+input {
+  background: white;
 }
 
 body {

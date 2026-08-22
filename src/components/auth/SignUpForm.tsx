@@ -2,6 +2,7 @@
 import { signUpAction, type SignUpState } from "@/app/sign-up/actions";
 import Link from "next/link";
 import { useActionState } from "react";
+import Button from "../ui/Button";
 
 const initialState: SignUpState = {
   errors: {},
@@ -26,6 +27,7 @@ const SignUpForm = () => {
           name="firstName"
           type="text"
           defaultValue={state.values?.firstName}
+          placeholder="John"
         />
         {state?.errors.firstName && (
           <p className="text-red-500 font-medium text-xs ">
@@ -40,6 +42,7 @@ const SignUpForm = () => {
           name="lastName"
           type="text"
           defaultValue={state.values?.lastName}
+          placeholder="Snow"
         />
         {state?.errors.lastName && (
           <p className="text-red-500 font-medium text-xs ">
@@ -54,6 +57,7 @@ const SignUpForm = () => {
           name="email"
           type="email"
           defaultValue={state.values?.email}
+          placeholder="parent@email.com"
         />
         {state?.errors.email && (
           <p className="text-red-500 font-medium text-xs ">
@@ -67,19 +71,21 @@ const SignUpForm = () => {
           className={`border ${state?.errors.password ? "border-red-500" : "border-[#DDE5DF]"} px-2 p-3 mt-1 rounded-xl font-semibold tracking-widest`}
           name="password"
           type="password"
-        />
+          placeholder="********"
+          />
         {state?.errors.password && (
           <p className="text-red-500 font-medium text-xs ">
             {state.errors.password[0]}
           </p>
         )}
       </label>
-      <label className="flex flex-col text-sm font-semibold mb-4">
+      <label className="flex flex-col text-sm font-semibold mb-8">
         Confirmer mot de passe
         <input
           className={`border ${state?.errors.confirmPassword ? "border-red-500" : "border-[#DDE5DF]"} px-2 p-3 mt-1 rounded-xl font-semibold tracking-widest`}
           name="confirmPassword"
           type="password"
+          placeholder="********"
         />
         {state?.errors.confirmPassword && (
           <p className="text-red-500 font-medium text-xs ">
@@ -88,12 +94,7 @@ const SignUpForm = () => {
         )}
       </label>
 
-      <button
-        type="submit"
-        className="bg-[#4F8A69] text-white py-3 w-full rounded-xl text-md font-semibold mb-2 cursor-pointer"
-      >
-        Créer mon compte
-      </button>
+      <Button buttonText="Créer mon compte" />
       <div className="w-full flex justify-center mb-8">
         <Link
           href="/login"
