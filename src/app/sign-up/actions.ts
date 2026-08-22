@@ -1,5 +1,6 @@
 "use server";
 
+import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/zod";
 import bcrypt from "bcryptjs";
@@ -43,10 +44,8 @@ export async function signUpAction(
     };
   }
 
-  const hashedPassword = await bcrypt.hash(
-    result.data.password + process.env.PEPPER,
-    10,
-  );
+  const pepperedPassword = result.data.password + process.env.PEPPER;
+  const hashedPassword = await bcrypt.hash(pepperedPassword, 10);
 
   const existingUser = await prisma.user.findUnique({
     where: {
@@ -74,5 +73,14 @@ export async function signUpAction(
     },
   });
 
+  // auto connect after sign up
+  console.log("🚀 ~ signUpAction ~ user:", user);
+  if (user) {
+    const formDataSignIn: FormData = new FormData();
+    formDataSignIn.append("email", user.email);
+    formDataSignIn.append("password", pepperedPassword);
+    formDataSignIn.append("redirectTo", "/dashboard");
+    await signIn("credentialsProvider", formDataSignIn);
+  }
   redirect("/login");
 }
