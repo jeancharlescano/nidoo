@@ -1,13 +1,15 @@
 "use server";
 
 import { signIn } from "@/auth";
+import { pepperPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/zod";
 import bcrypt from "bcryptjs";
-import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 
 export type SignUpState = {
   errors: {
+    general?: string[];
     email?: string[];
     password?: string[];
     confirmPassword?: string[];
@@ -24,32 +26,36 @@ export async function signUpAction(
   _previousState: SignUpState,
   formData: FormData,
 ): Promise<SignUpState> {
-  const result = signUpSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
+  const firstName = formData.get("firstName");
+  const lastName = formData.get("lastName");
+
+  const zodResult = signUpSchema.safeParse({
+    email: email,
+    password: password,
+    confirmPassword: confirmPassword,
+    firstName: firstName,
+    lastName: lastName,
   });
 
-  if (!result.success) {
+  if (!zodResult.success) {
     return {
-      errors: result.error.flatten().fieldErrors,
+      errors: zodResult.error.flatten().fieldErrors,
 
       values: {
-        firstName: formData.get("firstName") as string,
-        lastName: formData.get("lastName") as string,
-        email: formData.get("email") as string,
+        firstName: typeof firstName === "string" ? firstName : "",
+        lastName: typeof lastName === "string" ? lastName : "",
+        email: typeof email === "string" ? email : "",
       },
     };
   }
 
-  const pepperedPassword = result.data.password + process.env.PEPPER;
-  const hashedPassword = await bcrypt.hash(pepperedPassword, 10);
-
+  const normalizedEmail = zodResult.data.email.toLowerCase();
   const existingUser = await prisma.user.findUnique({
     where: {
-      email: result.data.email,
+      email: normalizedEmail,
     },
   });
 
@@ -57,30 +63,52 @@ export async function signUpAction(
     return {
       errors: { email: ["Un compte avec cet email existe déjà."] },
       values: {
-        firstName: formData.get("firstName") as string,
-        lastName: formData.get("lastName") as string,
-        email: formData.get("email") as string,
+        firstName: zodResult.data.firstName,
+        lastName: zodResult.data.lastName,
+        email: zodResult.data.email,
       },
     };
   }
 
+  const hmacPassword = pepperPassword(zodResult.data.password);
+  const hashedPassword = await bcrypt.hash(hmacPassword, 10);
+
   const user = await prisma.user.create({
     data: {
-      firstName: result.data.firstName as string,
-      lastName: result.data.lastName,
-      email: result.data.email,
+      firstName: zodResult.data.firstName || null,
+      lastName: zodResult.data.lastName || null,
+      email: normalizedEmail,
       password: hashedPassword,
     },
   });
 
-  // auto connect after sign up
-  console.log("🚀 ~ signUpAction ~ user:", user);
-  if (user) {
-    const formDataSignIn: FormData = new FormData();
-    formDataSignIn.append("email", user.email);
-    formDataSignIn.append("password", pepperedPassword);
-    formDataSignIn.append("redirectTo", "/dashboard");
+  const formDataSignIn: FormData = new FormData();
+  formDataSignIn.append("email", user.email);
+  formDataSignIn.append("password", zodResult.data.password);
+  formDataSignIn.append("redirectTo", "/dashboard");
+
+  try {
     await signIn("credentialsProvider", formDataSignIn);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      console.error("[SIGNUP AUTO SIGNIN ERROR]", {
+        type: error.type,
+        cause: error.cause,
+      });
+
+      return {
+        errors: {
+          general: ["Votre compte a été créé, mais la connexion a échoué."],
+        },
+        values: {
+          firstName: zodResult.data.firstName,
+          lastName: zodResult.data.lastName,
+          email: zodResult.data.email,
+        },
+      };
+    }
+    throw error;
   }
-  redirect("/login");
+
+  return { errors: {} };
 }

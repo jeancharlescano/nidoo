@@ -14,6 +14,11 @@ const SignUpForm = () => {
   );
   return (
     <form action={formAction}>
+      {state?.errors.general && (
+        <p className="text-red-500 font-semibold text-xs -mt-4 mb-4">
+          {state.errors.general[0]}
+        </p>
+      )}
       <label className="flex flex-col text-sm font-semibold mb-4">
         Prénom
         <input

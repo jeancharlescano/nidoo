@@ -19,14 +19,8 @@ export const signUpSchema = signInSchema
       .min(1, "Confirm password is required")
       .min(8, "Confirm password must be more than 8 characters"),
 
-    firstName: string({ error: "Firstname is required" }).min(
-      1,
-      "Firstname is required",
-    ),
-    lastName: string({ error: "Lastname is required" }).min(
-      1,
-      "Lastname is required",
-    ),
+    firstName: string({ error: "Firstname is required" }).optional(),
+    lastName: string({ error: "Lastname is required" }).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     error: "Passwords do not match",

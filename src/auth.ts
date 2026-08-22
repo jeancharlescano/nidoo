@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { signInSchema } from "./lib/zod";
+import { pepperPassword } from "./lib/password";
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   pages: {
@@ -28,14 +29,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           },
         });
 
-        if (
-          !user ||
-          !(await bcrypt.compare(
-            inputPassword + process.env.PEPPER,
-            user.password,
-          ))
-        )
-          return null;
+        if (!user) return null;
+        
+        const hmacPassword = pepperPassword(inputPassword);
+        if (!(await bcrypt.compare(hmacPassword, user.password))) return null;
 
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
