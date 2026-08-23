@@ -1,9 +1,12 @@
 import { object, string } from "zod";
+import { z } from "zod";
+
+export const emailSchema = z
+  .email("Adresse e-mail invalide.")
+  .min(1, "L'adresse e-mail est requise.");
 
 export const signInSchema = object({
-  email: string({ error: "Email is required" })
-    .min(1, "Email is required")
-    .email("Invalid email"),
+  email: emailSchema,
   password: string({ error: "Password is required" })
     .min(1, "Password is required")
     .min(8, "Password must be more than 8 characters")
@@ -26,3 +29,7 @@ export const signUpSchema = signInSchema
     error: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});

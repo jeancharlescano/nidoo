@@ -1,11 +1,13 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { sendVerificationEmail } from "@/lib/mail/verification-email";
 import { pepperPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { emailExists } from "@/lib/user/queries";
 import { signUpSchema } from "@/lib/zod";
 import bcrypt from "bcryptjs";
-import { AuthError } from "next-auth";
+import { randomBytes } from "crypto";
+import { redirect } from "next/navigation";
 
 export type SignUpState = {
   errors: {
@@ -53,13 +55,8 @@ export async function signUpAction(
   }
 
   const normalizedEmail = zodResult.data.email.toLowerCase();
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: normalizedEmail,
-    },
-  });
 
-  if (existingUser) {
+  if (await emailExists(normalizedEmail)) {
     return {
       errors: { email: ["Un compte avec cet email existe déjà."] },
       values: {
@@ -69,6 +66,7 @@ export async function signUpAction(
       },
     };
   }
+
 
   const hmacPassword = pepperPassword(zodResult.data.password);
   const hashedPassword = await bcrypt.hash(hmacPassword, 10);
@@ -82,33 +80,48 @@ export async function signUpAction(
     },
   });
 
-  const formDataSignIn: FormData = new FormData();
-  formDataSignIn.append("email", user.email);
-  formDataSignIn.append("password", zodResult.data.password);
-  formDataSignIn.append("redirectTo", "/dashboard");
+  if (user) {
+    const token = randomBytes(32).toString("hex");
+    await prisma.verificationToken.create({
+      data: {
+        identifier: normalizedEmail,
+        token: token,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
 
-  try {
-    await signIn("credentialsProvider", formDataSignIn);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      console.error("[SIGNUP AUTO SIGNIN ERROR]", {
-        type: error.type,
-        cause: error.cause,
-      });
+    await sendVerificationEmail(normalizedEmail, token);
 
-      return {
-        errors: {
-          general: ["Votre compte a été créé, mais la connexion a échoué."],
-        },
-        values: {
-          firstName: zodResult.data.firstName,
-          lastName: zodResult.data.lastName,
-          email: zodResult.data.email,
-        },
-      };
-    }
-    throw error;
+    redirect("/confirm-email");
   }
+
+  // const formDataSignIn: FormData = new FormData();
+  // formDataSignIn.append("email", user.email);
+  // formDataSignIn.append("password", zodResult.data.password);
+  // formDataSignIn.append("redirectTo", "/dashboard");
+
+  // try {
+  //   await signIn("credentialsProvider", formDataSignIn);
+  // } catch (error) {
+  //   if (error instanceof AuthError) {
+  //     console.error("[SIGNUP AUTO SIGNIN ERROR]", {
+  //       type: error.type,
+  //       cause: error.cause,
+  //     });
+
+  //     return {
+  //       errors: {
+  //         general: ["Votre compte a été créé, mais la connexion a échoué."],
+  //       },
+  //       values: {
+  //         firstName: zodResult.data.firstName,
+  //         lastName: zodResult.data.lastName,
+  //         email: zodResult.data.email,
+  //       },
+  //     };
+  //   }
+  //   throw error;
+  // }
 
   return { errors: {} };
 }

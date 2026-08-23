@@ -1,9 +1,15 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { signInSchema } from "./lib/zod";
 import { pepperPassword } from "./lib/password";
+import { findUserByEmail } from "./lib/user/queries";
+
+import { CredentialsSignin } from "next-auth";
+
+class EmailNotVerified extends CredentialsSignin {
+  code = "email_not_verified";
+}
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   pages: {
@@ -23,16 +29,16 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         const { email, password: inputPassword } =
           await signInSchema.parseAsync(credentials);
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: email,
-          },
-        });
+        const user = await findUserByEmail(email);
 
         if (!user) return null;
-        
+
         const hmacPassword = pepperPassword(inputPassword);
         if (!(await bcrypt.compare(hmacPassword, user.password))) return null;
+
+        if (!user.emailVerified) {
+          throw new EmailNotVerified();
+        }
 
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
@@ -44,7 +50,14 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       const pathname = request.nextUrl.pathname;
       const isLoggedIn = !!auth?.user;
 
-      const publicRoutes = ["/login", "/sign-up", "/forgot-password"];
+      const publicRoutes = [
+        "/login",
+        "/sign-up",
+        "/forgot-password",
+        "/confirm-email",
+        "/verify-email",
+        "/create-baby",
+      ];
 
       const isPublicRoute = publicRoutes.includes(pathname);
 

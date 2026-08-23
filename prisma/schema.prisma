@@ -13,11 +13,12 @@ datasource db {
 }
 
 model User {
-  id        String  @id @default(cuid())
-  email     String  @unique
-  password  String
-  firstName String?
-  lastName  String?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  emailVerified DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -29,6 +30,14 @@ model User {
   sleeps   SleepSession[]
 
   invitationsSent FamilyInvitation[] @relation("InvitationSender")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Family {
@@ -51,7 +60,7 @@ model FamilyMember {
 
   role FamilyRole @default(PARENT)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, familyId])
@@ -76,8 +85,8 @@ model FamilyInvitation {
 
   createdAt DateTime @default(now())
 
-  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  invitedBy User @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  invitedBy User   @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
 
   @@index([email])
   @@index([familyId])
@@ -141,8 +150,8 @@ model SleepSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  baby Baby @relation(fields: [babyId], references: [id],onDelete: Cascade)
-  user User @relation(fields: [createdBy], references: [id] )
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id])
 
   @@index([babyId, startAt])
 }
@@ -162,7 +171,7 @@ model DiaperChange {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  baby Baby @relation(fields: [babyId], references: [id],onDelete: Cascade)
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
   user User @relation(fields: [createdBy], references: [id])
 
   @@index([babyId, occurredAt])

@@ -1,5 +1,5 @@
 "use client";
-import { signUpAction, type SignUpState } from "@/app/sign-up/actions";
+import { signUpAction, type SignUpState } from "@/lib/actions/auth/sign-up";
 import Link from "next/link";
 import { useActionState } from "react";
 import Button from "../ui/Button";
@@ -58,6 +58,7 @@ const SignUpForm = () => {
           type="email"
           defaultValue={state.values?.email}
           placeholder="parent@email.com"
+          required
         />
         {state?.errors.email && (
           <p className="text-red-500 font-medium text-xs ">
@@ -72,7 +73,8 @@ const SignUpForm = () => {
           name="password"
           type="password"
           placeholder="********"
-          />
+          required
+        />
         {state?.errors.password && (
           <p className="text-red-500 font-medium text-xs ">
             {state.errors.password[0]}
@@ -86,6 +88,7 @@ const SignUpForm = () => {
           name="confirmPassword"
           type="password"
           placeholder="********"
+          required
         />
         {state?.errors.confirmPassword && (
           <p className="text-red-500 font-medium text-xs ">

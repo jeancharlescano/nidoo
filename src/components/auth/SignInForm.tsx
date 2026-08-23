@@ -1,5 +1,5 @@
 import { signIn } from "@/auth";
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Button from "../ui/Button";
@@ -13,9 +13,17 @@ export default function SignIn() {
           formData.append("redirectTo", "/dashboard");
           await signIn("credentialsProvider", formData);
         } catch (error) {
-          if (error instanceof AuthError) {
-            return redirect("/login?error=CredentialsSignin");
+          const email = formData.get("email") as string;
+          if (error instanceof CredentialsSignin) {
+            return redirect(
+              `/login?error=${error.type}&code=${error.code}&email=${encodeURIComponent(email)}`,
+            );
           }
+
+          if (error instanceof AuthError) {
+            return redirect(`/login?error=${error.type}`);
+          }
+
           throw error;
         }
       }}
@@ -27,6 +35,7 @@ export default function SignIn() {
           name="email"
           type="email"
           placeholder="parent@email.com"
+          required
         />
       </label>
       <label className="flex flex-col text-sm font-semibold mb-4">
@@ -36,6 +45,7 @@ export default function SignIn() {
           name="password"
           type="password"
           placeholder="********"
+          required
         />
       </label>
       <div className="w-full flex justify-end mb-8">
