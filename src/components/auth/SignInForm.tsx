@@ -1,29 +1,24 @@
 import { signIn } from "@/auth";
-import { AuthError, CredentialsSignin } from "next-auth";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import Button from "../ui/Button";
 
-export default function SignIn() {
+type Props = {
+  buttonText: string;
+};
+
+export default function SignIn({ buttonText }: Props) {
   return (
     <form
       action={async (formData) => {
         "use server";
         try {
-          formData.append("redirectTo", "/dashboard");
-          await signIn("credentialsProvider", formData);
+          await signIn("resend", {
+            email: formData.get("email"),
+            redirectTo: "/auth/post-auth",
+          });
         } catch (error) {
-          const email = formData.get("email") as string;
-          if (error instanceof CredentialsSignin) {
-            return redirect(
-              `/login?error=${error.type}&code=${error.code}&email=${encodeURIComponent(email)}`,
-            );
-          }
-
-          if (error instanceof AuthError) {
-            return redirect(`/login?error=${error.type}`);
-          }
-
+          if (isRedirectError(error)) throw error;
+          console.log("🚀 ~ SignIn ~ error:", error);
           throw error;
         }
       }}
@@ -38,36 +33,7 @@ export default function SignIn() {
           required
         />
       </label>
-      <label className="flex flex-col text-sm font-semibold mb-4">
-        Password
-        <input
-          className="border border-[#DDE5DF] px-2 p-3 rounded-xl tracking-widest text-[#6B7280] font-semibold"
-          name="password"
-          type="password"
-          placeholder="********"
-          required
-        />
-      </label>
-      <div className="w-full flex justify-end mb-8">
-        <Link
-          href="/forgot-password"
-          className="text-sm font-semibold text-[#4F8A69] hover:underline cursor-pointer"
-        >
-          Mot de passe oublié ?
-        </Link>
-      </div>
-      <Button buttonText="Se connecter" />
-      <div className="w-full flex justify-center mb-8">
-        <p className="text-sm text-[#6B7280]">
-          Pas encore de compte ?{" "}
-          <Link
-            href="/sign-up"
-            className=" font-semibold text-[#4F8A69] hover:underline cursor-pointer"
-          >
-            Créer un compte
-          </Link>
-        </p>
-      </div>
+      <Button buttonText={buttonText} />
     </form>
   );
 }
