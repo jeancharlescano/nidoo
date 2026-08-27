@@ -12,9 +12,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     signIn: "/auth/login",
     verifyRequest: "/auth/verify-request",
   },
-  providers: [Resend({
+  providers: [
+    Resend({
       from: "Nidoo <onboarding@resend.dev>",
-    })],
+    }),
+  ],
   callbacks: {
     authorized: async ({ auth, request }) => {
       const pathname = request.nextUrl.pathname;
@@ -24,7 +26,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         "/auth/login",
         "/auth/sign-up",
         "/auth/verify-request",
-        "/create-baby",
       ];
 
       const isPublicRoute = publicRoutes.includes(pathname);
@@ -34,6 +35,14 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       }
 
       return isLoggedIn;
+    },
+    session: async ({ session, user }) => {
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.firstName = user.firstName || "";
+        session.user.lastName = user.lastName || "";
+      }
+      return session;
     },
   },
 });
