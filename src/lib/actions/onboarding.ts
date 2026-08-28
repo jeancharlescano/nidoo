@@ -48,6 +48,13 @@ export async function onBoardingAction(
         },
       },
     });
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        onBoarded: true,
+      },
+    });
   } catch (error) {
     console.error("Erreur update user onboarding:", error);
     return {

@@ -18,6 +18,7 @@ model User {
   firstName     String?
   lastName      String?
   emailVerified DateTime?
+  onBoarded     Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

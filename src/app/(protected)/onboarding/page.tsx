@@ -1,7 +1,24 @@
+import { auth } from "@/auth";
 import IntroHeader from "@/components/IntroHeader";
 import OnBoardingForm from "@/components/auth/OnBoardingForm";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
-const OnBoardingPage = () => {
+const OnBoardingPage = async () => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { onBoarded: true },
+  });
+
+  if (user?.onBoarded) {
+    redirect("/");
+  }
   return (
     <div className="p-4">
       <IntroHeader />
@@ -10,12 +27,6 @@ const OnBoardingPage = () => {
         Quelque informations supplémentaires
       </p>
       <OnBoardingForm buttonText="Continuer" />
-      {/* <Link
-        href="/add-baby"
-        className="block w-full text-center text-[#4F8A69] text-sm font-semibold underline hover:no-underline "
-      >
-        Passer cette étape
-      </Link> */}
     </div>
   );
 };
