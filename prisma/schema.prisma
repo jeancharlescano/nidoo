@@ -131,6 +131,7 @@ model Baby {
   birthDate DateTime?
 
   sex      BabySex?
+  weight   Float
   photoUrl String?
 
   createdAt DateTime @default(now())
@@ -224,7 +225,7 @@ enum FamilyRole {
 }
 
 enum BabySex {
-  MALE
-  FEMALE
-  OTHER
+  H
+  F
+  O
 }

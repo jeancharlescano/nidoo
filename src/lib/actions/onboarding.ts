@@ -14,7 +14,7 @@ export async function onBoardingAction(
   formData: FormData,
 ): Promise<OnboardingState> {
   const session = await auth();
-  if (!session?.user) throw new Error("Non authentifié");
+  if (!session?.user?.id) redirect("/login");
 
   const zodResult = onBoardingSchema.safeParse({
     firstname: formData.get("firstName"),
@@ -36,6 +36,18 @@ export async function onBoardingAction(
         lastName: zodResult.data.lastname,
       },
     });
+
+    await prisma.family.create({
+      data: {
+        name: "Famille de " + zodResult.data.firstname,
+        members: {
+          create: {
+            userId: session.user.id,
+            role: "ADMIN",
+          },
+        },
+      },
+    });
   } catch (error) {
     console.error("Erreur update user onboarding:", error);
     return {
@@ -43,5 +55,5 @@ export async function onBoardingAction(
     };
   }
 
-  redirect("/add-baby");
+  redirect("/add-baby?source=onboarding");
 }
