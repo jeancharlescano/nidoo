@@ -1,4 +1,4 @@
-import { z, object } from "zod";
+import { z, object, email } from "zod";
 
 export const onBoardingSchema = object({
   firstname: z
@@ -21,4 +21,12 @@ export const babySchema = object({
   }),
   sexe: z.string().min(1, "La valeur ne peut pas excéder 1 caractère").max(1),
   weight: z.coerce.number().positive("La valeur doit être supérieur à 0"),
+});
+
+export const emailSchema = object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email("Veuillez saisir une adresse e-mail valide")),
 });

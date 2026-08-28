@@ -22,7 +22,9 @@ const OnBoardingPage = async () => {
   return (
     <div className="p-4">
       <IntroHeader />
-      <h2 className="text-3xl mb-2 font-semibold">Votre profil</h2>
+      <h2 className="text-[#1F2937] text-3xl mb-2 font-semibold">
+        Votre profil
+      </h2>
       <p className="text-[#6B7280] mb-8 text-sm">
         Quelque informations supplémentaires
       </p>
