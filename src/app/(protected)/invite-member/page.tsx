@@ -1,5 +1,5 @@
-import IntroHeader from "@/components/IntroHeader";
-import InviteMemberForm from "@/components/InviteMemberForm";
+import IntroHeader from "@/components/ui/IntroHeader";
+import InviteMemberForm from "@/components/forms/InviteMemberForm";
 
 const InviteMemberPage = () => {
   return (

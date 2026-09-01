@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import IntroHeader from "@/components/IntroHeader";
-import OnBoardingForm from "@/components/auth/OnBoardingForm";
+import IntroHeader from "@/components/ui/IntroHeader";
+import OnBoardingForm from "@/components/forms/auth/OnBoardingForm";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 

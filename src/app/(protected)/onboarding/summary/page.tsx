@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import IntroHeader from "@/components/IntroHeader";
+import IntroHeader from "@/components/ui/IntroHeader";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";

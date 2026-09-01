@@ -1,5 +1,5 @@
-import IntroHeader from "@/components/IntroHeader";
-import SignInForm from "@/components/auth/SignInForm";
+import IntroHeader from "@/components/ui/IntroHeader";
+import SignInForm from "@/components/forms/auth/SignInForm";
 import Link from "next/link";
 const SignUp = () => {
   return (

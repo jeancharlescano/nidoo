@@ -1,5 +1,5 @@
-import AddBabyForm from "@/components/AddBabyForm";
-import IntroHeader from "@/components/IntroHeader";
+import AddBabyForm from "@/components/forms/AddBabyForm";
+import IntroHeader from "@/components/ui/IntroHeader";
 import Link from "next/link";
 
 const CreateBaby = async ({

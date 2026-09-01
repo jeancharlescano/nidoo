@@ -4,7 +4,7 @@ import {
   inviteMemberAction,
   InviteMemberState,
 } from "@/lib/actions/mail/mail-action";
-import Button from "./ui/Button";
+import Button from "../ui/Button";
 import { useActionState } from "react";
 import Link from "next/link";
 

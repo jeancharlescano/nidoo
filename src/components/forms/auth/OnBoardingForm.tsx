@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import Button from "../ui/Button";
+import Button from "../../ui/Button";
 import {
   onBoardingAction,
   type OnboardingState,

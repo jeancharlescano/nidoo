@@ -1,6 +1,6 @@
 import { signIn } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import Button from "../ui/Button";
+import Button from "../../ui/Button";
 
 type Props = {
   buttonText: string;
