@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { findUserByEmail } from "@/lib/user/queries";
+import { findUserByEmail } from "@/lib/queries/userQueries";
 import { redirect } from "next/navigation";
 
 const PostAuth = async () => {

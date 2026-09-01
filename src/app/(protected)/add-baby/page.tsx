@@ -17,11 +17,18 @@ const CreateBaby = async ({
       <p className="text-[#6B7280] mb-8 text-sm">
         Ces informations serviront à personnaliser le suivi.
       </p>
-      <AddBabyForm source={source}/>
+      <AddBabyForm source={source} />
       <p className="text-xs text-[#6B7280] text-center">
         Vous pourrez modifier ces informations plus tard.
       </p>
-      <Link href="/">Passer cette étape</Link>
+      {source === "onboarding" && (
+        <Link
+          href="/"
+          className="block w-full text-sm text-center font-semibold underline text-[#4F8A69] hover:no-underline"
+        >
+          Passer cette étape
+        </Link>
+      )}
     </div>
   );
 };
