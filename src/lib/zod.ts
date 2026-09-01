@@ -30,3 +30,21 @@ export const emailSchema = object({
     .toLowerCase()
     .pipe(z.email("Veuillez saisir une adresse e-mail valide")),
 });
+
+export const feedingSchema = object({
+  feedingType: z.enum(["BOTTLE", "BREAST"], {
+    error: "Le type de repas doit être soit Biberon soit Tétée",
+  }),
+  feedingQty: z.coerce.number().positive("La quantité doit être supérieur à 0"),
+  feedingTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "L'heure du repas n'est pas valide")
+    .transform((time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    }),
+});

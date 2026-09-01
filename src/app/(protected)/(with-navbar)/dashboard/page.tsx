@@ -1,8 +1,13 @@
 import { auth } from "@/auth";
+import BabySelect from "@/components/BabySelect";
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
 import Link from "next/link";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ babyId?: string }>;
+}) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -11,19 +16,17 @@ export default async function DashboardPage() {
 
   const babies = await getFamilyBabies(session.user.id);
 
+  const params = await searchParams;
+
+  const babyId = params.babyId ?? babies[0]?.id;
+
   return (
     <div className="p-2">
       <header className="flex justify-between items-center mb-4">
         <div>
-          <p className="text-xs text-[#7B8496] ">Bonjour 👋</p>
+          <p className="text-sm text-[#7B8496] ">Bonjour 👋</p>
           <p className="font-semibold text-2xl text-[#1E2430]">
-            Journée de{" "}
-            <select className="border rounded-full px-2 bg-gray-200">
-              {babies &&
-                babies.map((baby) => (
-                  <option key={baby.id}>{baby.firstName}</option>
-                ))}
-            </select>
+            Journée de <BabySelect babies={babies} selectedBabyId={babyId} />
           </p>
         </div>
         <Link href="/profile" className="rounded py-2 px-4 bg-[#E7EEFF]">
@@ -40,10 +43,26 @@ export default async function DashboardPage() {
           </span>
         </div>
         <div className="flex gap-2 overflow-x-auto justify-between">
-          <CardStyle emote="🍼" label="Biberon" href="/dashboard/feeding" />
-          <CardStyle emote="🤱" label="Tétée" href="/dashboard/feeding" />
-          <CardStyle emote="👶" label="Couche" href="/dashboard/diaper" />
-          <CardStyle emote="😴" label="Sommeil" href="/dashboard/sleep" />
+          <CardStyle
+            emote="🍼"
+            label="Biberon"
+            href={`/dashboard/${babyId}/feeding`}
+          />
+          <CardStyle
+            emote="🤱"
+            label="Tétée"
+            href={`/dashboard/${babyId}/feeding`}
+          />
+          <CardStyle
+            emote="👶"
+            label="Couche"
+            href={`/dashboard/${babyId}/diaper`}
+          />
+          <CardStyle
+            emote="😴"
+            label="Sommeil"
+            href={`/dashboard/${babyId}/sleep`}
+          />
         </div>
       </section>
     </div>

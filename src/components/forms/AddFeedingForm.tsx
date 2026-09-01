@@ -5,6 +5,7 @@ import {
   createFeedingAction,
   CreateFeedingState,
 } from "@/lib/actions/feeding/create-feeding";
+import { useParams } from "next/navigation";
 
 const initialState: CreateFeedingState = {
   errors: [],
@@ -15,6 +16,9 @@ const AddFeedingForm = () => {
     createFeedingAction,
     initialState,
   );
+
+  const params = useParams<{ babyId: string }>();
+  const babyId = params.babyId;
   return (
     <form action={formAction}>
       {state?.errors && (
@@ -22,6 +26,7 @@ const AddFeedingForm = () => {
           {state.errors[0]}
         </p>
       )}
+      <input type="hidden" name="babyId" value={babyId} />
       <p className="text-sm font-semibold mb-1">Type de repas</p>
       <div className="flex w-full gap-3 mb-4">
         <label className="flex-1 cursor-pointer">

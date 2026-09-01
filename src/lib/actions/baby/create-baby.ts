@@ -36,7 +36,6 @@ export async function createBabyAction(
       where: { members: { some: { userId: session.user.id } } },
     });
 
-    console.log("🚀 ~ createBabyAction ~ family:", family)
     if (!family) {
       console.error("[ADD BABY] Famille introuvable pour l'utilisateur", {
         userId: session.user.id,
