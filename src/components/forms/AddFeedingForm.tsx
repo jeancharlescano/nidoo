@@ -162,7 +162,7 @@ const AddFeedingForm = () => {
         <div className="w-full border border-[#DDE5DF] rounded-xl px-4 py-3 bg-white box-border">
           <input
             type="time"
-            name="diaperTime"
+            name="feedingTime"
             className="block w-full min-w-0 border-0 p-0 text-sm bg-transparent outline-none appearance-none"
           />
         </div>

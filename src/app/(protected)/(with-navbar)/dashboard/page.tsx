@@ -1,6 +1,9 @@
 import { auth } from "@/auth";
 import BabySelect from "@/components/BabySelect";
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
+import { getDiaperSummary } from "@/lib/queries/diaperQueries";
+import { getFeedSummary } from "@/lib/queries/feedingQueries";
+import { formatTimeAgo } from "@/lib/utils/formatTimeAgo";
 import Link from "next/link";
 
 export default async function DashboardPage({
@@ -33,7 +36,7 @@ export default async function DashboardPage({
           {session.user?.firstName[0].toUpperCase()}
         </Link>
       </header>
-      <section>
+      <section className="mb-4">
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-sm text-[#1E2430]">
             Ajouter maintenant
@@ -65,6 +68,8 @@ export default async function DashboardPage({
           />
         </div>
       </section>
+      <FeedSummary babyId={babyId} />
+      <DiaperSummary babyId={babyId} />
     </div>
   );
 }
@@ -86,5 +91,136 @@ const CardStyle = ({
       <span className=" text-xl">{emote}</span>
       <span className=" text-xs font-semibold text-[#1E2430]">{label}</span>
     </Link>
+  );
+};
+
+const FeedSummary = async ({ babyId }: { babyId: string }) => {
+  const feedSummary = await getFeedSummary(babyId);
+
+  if (!feedSummary.lastFeeding) {
+    return (
+      <div className="w-full rounded-[22px] border border-[#EDF0F5] bg-white p-3.5 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7.5 items-center justify-center rounded-full bg-[#EEF3FF]">
+            <span className="text-xl">🍼</span>
+          </div>
+
+          <p className="text-sm font-semibold text-[#1E2430]">Repas</p>
+        </div>
+
+        <p className="mt-3 text-sm text-[#7B8496]">Aucun repas aujourd’hui</p>
+      </div>
+    );
+  }
+
+  const lastFeedingTime = feedSummary.lastFeeding.occurredAt.toLocaleTimeString(
+    "fr-FR",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
+
+  return (
+    <div className="w-full rounded-xl border border-[#EDF0F5] bg-white p-3.5 mb-4">
+      <div className="mb-2 flex h-7.5 items-center justify-between">
+        <div className="flex items-center gap-1.75">
+          <div className="flex h-7.5 items-center justify-center rounded-full bg-[#EEF3FF]">
+            <span className="text-xl">🍼</span>
+          </div>
+
+          <p className="text-sm font-semibold text-[#1E2430]">Repas</p>
+        </div>
+
+        <div className="rounded-full bg-[#F4F6F9] px-2.5 py-1.75">
+          <p className="text-[11px] font-semibold text-[#697386]">
+            {formatTimeAgo(feedSummary.lastFeeding.occurredAt)}
+          </p>
+        </div>
+      </div>
+
+      <div className="mb-2 flex items-center gap-1.75">
+        <p className="text-[23px] font-bold text-[#1E2430]">
+          {lastFeedingTime}
+        </p>
+
+        <span className="text-sm text-[#AAB1BE]">•</span>
+
+        {feedSummary.lastFeeding.quantityMl && (
+          <p className="text-[17px] font-semibold text-[#4F8A69]">
+            {feedSummary.lastFeeding.quantityMl} ml
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-5">
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[17px] font-bold text-[#1E2430]">
+            {feedSummary.totalQuantity} ml
+          </p>
+          <p className="text-[10px] font-medium text-[#7B8496]">
+            Depuis minuit
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[17px] font-bold text-[#1E2430]">
+            {feedSummary.bottleCount}
+          </p>
+          <p className="text-[10px] font-medium text-[#7B8496]">Biberons</p>
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[17px] font-bold text-[#1E2430]">
+            {feedSummary.breastCount}
+          </p>
+          <p className="text-[10px] font-medium text-[#7B8496]">Tétées</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DiaperSummary = async ({ babyId }: { babyId: string }) => {
+  const diaperSummary = await getDiaperSummary(babyId);
+  if (!diaperSummary.lastDiaperChange) {
+    return (
+      <div className="w-full rounded-[22px] border border-[#EDF0F5] bg-white p-3.5">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7.5 items-center justify-center rounded-full bg-[#EEF3FF]">
+            <span className="text-xl">🍼</span>
+          </div>
+
+          <p className="text-sm font-semibold text-[#1E2430]">Dodo</p>
+        </div>
+
+        <p className="mt-3 text-sm text-[#7B8496]">Aucun dodo aujourd’hui</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-1/2 rounded-xl border border-[#EDF0F5] bg-white p-3.5 flex flex-col">
+      <span className="mb-1">👶</span>
+      <span className="text-sm text-[#1E2430] font-semibold">Couches</span>
+      <span className="text-xs text-[#7B8496]">
+        Dernier : {formatTimeAgo(diaperSummary.lastDiaperChange.occurredAt)}
+      </span>
+      <div className="flex gap-5">
+        <div className="flex flex-col">
+          <p className="text-[17px] font-bold text-[#1E2430]">
+            {diaperSummary.totalPee}
+          </p>
+          <p className="text-[10px] font-medium text-[#7B8496]">Pipis</p>
+        </div>
+
+        <div className="flex flex-col ">
+          <p className="text-[17px] font-bold text-[#1E2430]">
+            {diaperSummary.totalPoop}
+          </p>
+          <p className="text-[10px] font-medium text-[#7B8496]">Selles</p>
+        </div>
+      </div>
+    </div>
   );
 };
