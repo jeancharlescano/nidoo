@@ -65,3 +65,30 @@ export const diaperSchema = object({
       return date;
     }),
 });
+
+export const sleepSchema = object({
+  startAt: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "L'heure de couché n'est pas valide")
+    .transform((time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    }),
+  endAt: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "L'heure de réveil n'est pas valide")
+    .transform((time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    })
+    .optional()
+    .nullable(),
+});

@@ -38,7 +38,7 @@ export default async function DashboardPage({
           <span className="font-semibold text-sm text-[#1E2430]">
             Ajouter maintenant
           </span>
-          <span className="font-semibold text-xs text-[#4F8A69] bg-[#d8ffe9] px-2 rounded-lg py-1">
+          <span className="font-semibold text-xs text-[#4F8A69] bg-[#dfffed] px-2 rounded-lg py-1">
             1 clic = 1 action
           </span>
         </div>
@@ -61,7 +61,7 @@ export default async function DashboardPage({
           <CardStyle
             emote="😴"
             label="Sommeil"
-            href={`/dashboard/${babyId}/sleep`}
+            href={`/dashboard/${babyId}/sleep-session`}
           />
         </div>
       </section>
