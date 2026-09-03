@@ -48,3 +48,20 @@ export const feedingSchema = object({
       return date;
     }),
 });
+
+export const diaperSchema = object({
+  diaperType: z.enum(["PEE", "POOP", "BOTH"], {
+    error: "Le type de change doit être soit Pipi soit Caca soit les deux",
+  }),
+  diaperTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "L'heure du change n'est pas valide")
+    .transform((time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    }),
+});

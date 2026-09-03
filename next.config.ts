@@ -5,8 +5,4 @@ const nextConfig: NextConfig = {
     browserToTerminal: true,
   },
 };
-
-module.exports = {
-  allowedDevOrigins: ["192.168.1.70"],
-};
 export default nextConfig;

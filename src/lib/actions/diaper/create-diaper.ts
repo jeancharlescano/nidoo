@@ -2,31 +2,25 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { feedingSchema } from "@/lib/zod";
+import { diaperSchema } from "@/lib/zod";
 import { redirect } from "next/navigation";
 import z from "zod";
 
-export type CreateFeedingState = {
+export type CreateDiaperState = {
   errors?: string[];
   success?: boolean;
 };
 
-export async function createFeedingAction(
-  _previousState: CreateFeedingState,
+export async function createDiaperAction(
+  _previousState: CreateDiaperState,
   formData: FormData,
-): Promise<CreateFeedingState> {
+): Promise<CreateDiaperState> {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const feedingType =
-    formData.get("feedingQty") === "custom"
-      ? formData.get("customFeedingQty")
-      : formData.get("feedingQty");
-
-  const zodResult = feedingSchema.safeParse({
-    feedingType: formData.get("feedingType"),
-    feedingQty: feedingType,
-    feedingTime: formData.get("feedingTime"),
+  const zodResult = diaperSchema.safeParse({
+    diaperType: formData.get("diaperType"),
+    diaperTime: formData.get("diaperTime"),
   });
 
   if (!zodResult.success) {
@@ -53,25 +47,24 @@ export async function createFeedingAction(
     });
 
     if (!baby) {
-      console.error("[ADD FEEDING] Bébé introuvable pour l'utilisateur", {
+      console.error("[ADD DIAPER] Bébé introuvable pour l'utilisateur", {
         userId: session.user.id,
       });
       return {
-        errors: ["Une erreur est survenu lors de l'ajout du repas de bébé"],
+        errors: ["Une erreur est survenu lors de l'ajout de la couche de bébé"],
       };
     }
-    await prisma.feeding.create({
+    await prisma.diaperChange.create({
       data: {
         babyId: babyId,
-        type: zodResult.data.feedingType,
-        quantityMl: zodResult.data.feedingQty,
-        occurredAt: zodResult.data.feedingTime,
+        type: zodResult.data.diaperType,
+        occurredAt: zodResult.data.diaperTime,
         createdAt: new Date(),
         createdBy: session.user.id,
       },
     });
   } catch (error) {
-    console.error("Erreur dans la création d'un repas:", error);
+    console.error("Erreur dans la création d'une couche :", error);
     return {
       errors: ["Une erreur est survenue, veuillez réessayer."],
     };

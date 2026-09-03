@@ -20,7 +20,7 @@ const AddFeedingForm = () => {
   const params = useParams<{ babyId: string }>();
   const babyId = params.babyId;
   return (
-    <form action={formAction}>
+    <form action={formAction} className="w-full min-w-0">
       {state?.errors && (
         <p className="text-red-500 font-semibold text-xs -mt-4 mb-4">
           {state.errors[0]}
@@ -159,11 +159,13 @@ const AddFeedingForm = () => {
       <label className="block mb-8">
         <span className="text-sm font-semibold mb-1 block">Heure du repas</span>
 
-        <input
-          type="time"
-          name="feedingTime"
-          className="w-full border border-[#DDE5DF] rounded-xl px-4 py-3 text-sm"
-        />
+        <div className="w-full border border-[#DDE5DF] rounded-xl px-4 py-3 bg-white box-border">
+          <input
+            type="time"
+            name="diaperTime"
+            className="block w-full min-w-0 border-0 p-0 text-sm bg-transparent outline-none appearance-none"
+          />
+        </div>
       </label>
       <Button buttonText="✓ Enregistrer le repas" disabled={pending} />
     </form>

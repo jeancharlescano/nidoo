@@ -17,7 +17,7 @@ export default function BabySelect({
       onChange={(e) => {
         router.push(`/dashboard?babyId=${e.target.value}`);
       }}
-      className="border rounded-full px-2 bg-gray-200 text-xl"
+      className="text-xl"
     >
       {babies.map((baby) => (
         <option key={baby.id} value={baby.id}>
