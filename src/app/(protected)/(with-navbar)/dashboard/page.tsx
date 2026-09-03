@@ -3,6 +3,7 @@ import BabySelect from "@/components/BabySelect";
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
 import { getDiaperSummary } from "@/lib/queries/diaperQueries";
 import { getFeedSummary } from "@/lib/queries/feedingQueries";
+import { getSleepSummary } from "@/lib/queries/sleepSessionQueries";
 import { formatTimeAgo } from "@/lib/utils/formatTimeAgo";
 import Link from "next/link";
 
@@ -69,7 +70,10 @@ export default async function DashboardPage({
         </div>
       </section>
       <FeedSummary babyId={babyId} />
-      <DiaperSummary babyId={babyId} />
+      <div className="flex gap-2">
+        <DiaperSummary babyId={babyId} />
+        <SleepingSummary babyId={babyId} />
+      </div>
     </div>
   );
 }
@@ -185,16 +189,16 @@ const DiaperSummary = async ({ babyId }: { babyId: string }) => {
   const diaperSummary = await getDiaperSummary(babyId);
   if (!diaperSummary.lastDiaperChange) {
     return (
-      <div className="w-full rounded-[22px] border border-[#EDF0F5] bg-white p-3.5">
+      <div className="w-1/2 rounded-[22px] border border-[#EDF0F5] bg-white p-3.5">
         <div className="flex items-center gap-2">
           <div className="flex h-7.5 items-center justify-center rounded-full bg-[#EEF3FF]">
-            <span className="text-xl">🍼</span>
+            <span className="text-xl">👶</span>
           </div>
 
-          <p className="text-sm font-semibold text-[#1E2430]">Dodo</p>
+          <p className="text-sm font-semibold text-[#1E2430]">Couche</p>
         </div>
 
-        <p className="mt-3 text-sm text-[#7B8496]">Aucun dodo aujourd’hui</p>
+        <p className="mt-3 text-sm text-[#7B8496]">Aucune couche aujourd’hui</p>
       </div>
     );
   }
@@ -220,6 +224,43 @@ const DiaperSummary = async ({ babyId }: { babyId: string }) => {
           </p>
           <p className="text-[10px] font-medium text-[#7B8496]">Selles</p>
         </div>
+      </div>
+    </div>
+  );
+};
+const SleepingSummary = async ({ babyId }: { babyId: string }) => {
+  const sleepingSummary = await getSleepSummary(babyId);
+  if (!sleepingSummary.lastSleepingSession) {
+    return (
+      <div className="w-1/2 rounded-[22px] border border-[#EDF0F5] bg-white p-3.5">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7.5 items-center justify-center rounded-full bg-[#EEF3FF]">
+            <span className="text-xl">👶</span>
+          </div>
+
+          <p className="text-sm font-semibold text-[#1E2430]">Dodo</p>
+        </div>
+
+        <p className="mt-3 text-sm text-[#7B8496]">Aucun dodo aujourd’hui</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-1/2 rounded-xl border border-[#EDF0F5] bg-white p-3.5 flex flex-col">
+      <span className="mb-1">😴</span>
+      <span className="text-sm text-[#1E2430] font-semibold">Dodos</span>
+      <span className="text-xs text-[#7B8496]">
+        Dernier :{" "}
+        {sleepingSummary.lastSleepingSession?.endAt
+          ? formatTimeAgo(sleepingSummary.lastSleepingSession.endAt)
+          : "En cours"}
+      </span>
+      <div className="flex flex-col">
+        <p className="text-[17px] font-bold text-[#1E2430]">
+          {sleepingSummary.totalSleepFormatted}
+        </p>
+        <p className="text-[10px] font-medium text-[#7B8496]">Aujourd'hui</p>
       </div>
     </div>
   );
