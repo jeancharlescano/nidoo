@@ -1,5 +1,6 @@
 "use client";
 
+import { setSelectedBaby } from "@/lib/actions/baby/set-selected-baby";
 import { useRouter } from "next/navigation";
 
 export default function BabySelect({
@@ -14,8 +15,12 @@ export default function BabySelect({
   return (
     <select
       value={selectedBabyId}
-      onChange={(e) => {
-        router.push(`/dashboard?babyId=${e.target.value}`);
+      onChange={async (e) => {
+        const babyId = e.target.value;
+
+        await setSelectedBaby(babyId);
+
+        router.push(`/dashboard?babyId=${babyId}`);
       }}
       className="text-xl"
     >

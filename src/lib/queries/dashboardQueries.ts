@@ -4,6 +4,7 @@ export const getDashboardEvents = async (
   babyId: string,
   limit = 5,
   before?: Date,
+  todayOnly = true,
 ) => {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
@@ -11,15 +12,21 @@ export const getDashboardEvents = async (
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
 
-  const dateFilter = before
-    ? {
-        gte: startOfDay,
-        lt: before,
-      }
-    : {
-        gte: startOfDay,
-        lte: endOfDay,
-      };
+  const dateFilter = todayOnly
+    ? before
+      ? {
+          gte: startOfDay,
+          lt: before,
+        }
+      : {
+          gte: startOfDay,
+          lte: endOfDay,
+        }
+    : before
+      ? {
+          lt: before,
+        }
+      : undefined;
 
   const [feedings, diapers, sleeps] = await Promise.all([
     prisma.feeding.findMany({
@@ -77,7 +84,6 @@ export const getDashboardEvents = async (
       occurredAt: sleep.endAt ?? sleep.startAt,
       data: sleep,
     })),
-    
   ].sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
 
   const events = allEvents.slice(0, limit);

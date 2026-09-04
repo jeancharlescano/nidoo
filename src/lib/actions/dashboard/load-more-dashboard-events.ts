@@ -5,6 +5,13 @@ import { getDashboardEvents } from "@/lib/queries/dashboardQueries";
 export const loadMoreDashboardEvents = async (
   babyId: string,
   cursor: Date,
+  limit: number,
+  todayOnly: boolean,
 ) => {
-  return getDashboardEvents(babyId, 10, cursor);
+  return getDashboardEvents(
+    babyId,
+    limit,
+    cursor,
+    todayOnly,
+  );
 };

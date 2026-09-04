@@ -7,7 +7,9 @@ import { getFeedSummary } from "@/lib/queries/feedingQueries";
 import { getSleepSummary } from "@/lib/queries/sleepSessionQueries";
 import { formatTimeAgo } from "@/lib/utils/formatTimeAgo";
 import { RecentHistoryList } from "@/components/dashboard/recent-history-list";
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage({
   searchParams,
@@ -17,14 +19,18 @@ export default async function DashboardPage({
   const session = await auth();
 
   if (!session?.user?.id) {
-    return null;
+    redirect("/login");
   }
 
   const babies = await getFamilyBabies(session.user.id);
 
   const params = await searchParams;
 
-  const babyId = params.babyId ?? babies[0]?.id;
+  const cookieStore = await cookies();
+
+  const selectedBabyId = cookieStore.get("selectedBabyId")?.value;
+
+  const babyId = params.babyId ?? selectedBabyId ?? babies[0]?.id;
 
   return (
     <div className="p-2">

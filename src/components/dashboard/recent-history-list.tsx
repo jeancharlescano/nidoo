@@ -15,16 +15,22 @@ type RecentHistoryListProps = {
   babyId: string;
   initialEvents: DashboardEvent[];
   initialCursor: Date | null;
+  pageSize?: number;
+  showSeeAll?: boolean;
+  todayOnly?: boolean;
 };
 
 export const RecentHistoryList = ({
   babyId,
   initialEvents,
   initialCursor,
+  pageSize = 10,
+  showSeeAll = true,
+  todayOnly = true,
 }: RecentHistoryListProps) => {
   const [events, setEvents] = useState(initialEvents);
   const [cursor, setCursor] = useState(initialCursor);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(!showSeeAll);
   const [loading, setLoading] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -34,7 +40,12 @@ export const RecentHistoryList = ({
 
     setLoading(true);
 
-    const result = await loadMoreDashboardEvents(babyId, cursor);
+    const result = await loadMoreDashboardEvents(
+      babyId,
+      cursor,
+      pageSize,
+      todayOnly,
+    );
 
     setEvents((previousEvents) => {
       const existingEvents = new Set(
@@ -94,7 +105,7 @@ export const RecentHistoryList = ({
       <div className="flex items-center justify-between font-semibold">
         <p className="text-[15px] text-[#1e2430]">Aujourd’hui</p>
 
-        {!showAll && cursor && (
+        {showSeeAll && !showAll && cursor && (
           <button
             type="button"
             onClick={handleShowAll}
