@@ -1,10 +1,12 @@
 import { auth } from "@/auth";
 import BabySelect from "@/components/BabySelect";
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
+import { getDashboardEvents } from "@/lib/queries/dashboardQueries";
 import { getDiaperSummary } from "@/lib/queries/diaperQueries";
 import { getFeedSummary } from "@/lib/queries/feedingQueries";
 import { getSleepSummary } from "@/lib/queries/sleepSessionQueries";
 import { formatTimeAgo } from "@/lib/utils/formatTimeAgo";
+import { RecentHistoryList } from "@/components/dashboard/recent-history-list";
 import Link from "next/link";
 
 export default async function DashboardPage({
@@ -70,10 +72,11 @@ export default async function DashboardPage({
         </div>
       </section>
       <FeedSummary babyId={babyId} />
-      <div className="flex gap-2">
+      <div className="flex gap-2 mb-8">
         <DiaperSummary babyId={babyId} />
         <SleepingSummary babyId={babyId} />
       </div>
+      <RecentHistory babyId={babyId} />
     </div>
   );
 }
@@ -228,6 +231,7 @@ const DiaperSummary = async ({ babyId }: { babyId: string }) => {
     </div>
   );
 };
+
 const SleepingSummary = async ({ babyId }: { babyId: string }) => {
   const sleepingSummary = await getSleepSummary(babyId);
   if (!sleepingSummary.lastSleepingSession) {
@@ -263,5 +267,17 @@ const SleepingSummary = async ({ babyId }: { babyId: string }) => {
         <p className="text-[10px] font-medium text-[#7B8496]">Aujourd'hui</p>
       </div>
     </div>
+  );
+};
+
+const RecentHistory = async ({ babyId }: { babyId: string }) => {
+  const { events, nextCursor } = await getDashboardEvents(babyId, 4);
+
+  return (
+    <RecentHistoryList
+      babyId={babyId}
+      initialEvents={events}
+      initialCursor={nextCursor}
+    />
   );
 };
