@@ -23,6 +23,9 @@ export const HistoryList = ({
   initialEvents,
   initialCursor,
 }: Props) => {
+  const [selectedEvent, setSelectedEvent] = useState<DashboardEvent | null>(
+    null,
+  );
   const [events, setEvents] = useState(initialEvents);
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
@@ -94,8 +97,15 @@ export const HistoryList = ({
             key={`${event.type}-${event.id}`}
             event={event}
             onDelete={handleDelete}
+            onOpen={() => setSelectedEvent(event)}
           />
         ))}
+        {selectedEvent && (
+          <EventDetailsModal
+            event={selectedEvent}
+            onClose={() => setSelectedEvent(null)}
+          />
+        )}
       </div>
 
       {cursor && <div ref={loaderRef} className="h-4" />}
@@ -110,9 +120,11 @@ export const HistoryList = ({
 const HistoryEventRow = ({
   event,
   onDelete,
+  onOpen,
 }: {
   event: DashboardEvent;
   onDelete: (event: DashboardEvent) => Promise<void>;
+  onOpen: () => void;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -138,6 +150,7 @@ const HistoryEventRow = ({
   return (
     <div
       ref={menuRef}
+      onClick={onOpen}
       className="relative flex h-[62px] items-center rounded-[14px] border border-[#e5e7eb] bg-white px-[14px]"
     >
       <p className="w-[54px] shrink-0 text-[12px] font-semibold text-[#6b7280]">
@@ -152,9 +165,11 @@ const HistoryEventRow = ({
 
       <button
         type="button"
-        onClick={() => setMenuOpen((previous) => !previous)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen((previous) => !previous);
+        }}
         className="h-10 w-10 text-[18px] font-bold text-[#aab1be]"
-        aria-label="Options"
       >
         ⋯
       </button>
@@ -163,7 +178,10 @@ const HistoryEventRow = ({
         <div className="absolute bottom-[48px] right-2 z-30 rounded-lg border border-[#e5e7eb] bg-white p-1 shadow-md">
           <button
             type="button"
-            onClick={() => onDelete(event)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(event);
+            }}
             className="rounded-md px-3 py-2 text-[12px] font-semibold text-red-600"
           >
             Supprimer
@@ -172,6 +190,135 @@ const HistoryEventRow = ({
       )}
     </div>
   );
+};
+
+const EventDetailsModal = ({
+  event,
+  onClose,
+}: {
+  event: DashboardEvent;
+  onClose: () => void;
+}) => {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-24"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-[22px] bg-white p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{getEventEmoji(event)}</span>
+
+            <div>
+              <p className="text-[16px] font-semibold text-[#1f2937]">
+                {getHistoryLabel(event)}
+              </p>
+
+              <p className="text-[12px] text-[#6b7280]">
+                {formatEventTime(event.occurredAt)}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xl text-[#6b7280]"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3 text-[14px]">
+          {event.type === "feeding" && (
+            <>
+              <DetailLine label="Type" value={event.data.type} />
+
+              {event.data.quantityMl && (
+                <DetailLine
+                  label="Quantité"
+                  value={`${event.data.quantityMl} ml`}
+                />
+              )}
+
+              <DetailLine
+                label="Heure"
+                value={formatEventTime(event.occurredAt)}
+              />
+            </>
+          )}
+
+          {event.type === "diaper" && (
+            <>
+              <DetailLine label="Type" value={getHistoryLabel(event)} />
+
+              <DetailLine
+                label="Heure"
+                value={formatEventTime(event.occurredAt)}
+              />
+            </>
+          )}
+
+          {event.type === "sleep" && (
+            <>
+              <DetailLine
+                label="Début"
+                value={formatEventTime(event.data.startAt)}
+              />
+
+              {event.data.endAt && (
+                <DetailLine
+                  label="Fin"
+                  value={formatEventTime(event.data.endAt)}
+                />
+              )}
+
+              <DetailLine label="Durée" value={getSleepDuration(event)} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DetailLine = ({ label, value }: { label: string; value: string }) => {
+  return (
+    <div className="flex items-center justify-between border-b border-[#edf0f5] pb-2">
+      <span className="text-[#6b7280]">{label}</span>
+
+      <span className="font-semibold text-[#1f2937]">{value}</span>
+    </div>
+  );
+};
+
+const getSleepDuration = (event: DashboardEvent) => {
+  if (event.type !== "sleep" || !event.data.endAt) {
+    return "En cours";
+  }
+
+  const startAt = new Date(event.data.startAt);
+  const endAt = new Date(event.data.endAt);
+
+  const totalMinutes = Math.floor(
+    (endAt.getTime() - startAt.getTime()) / 1000 / 60,
+  );
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} h ${minutes}`;
+  }
+
+  if (hours > 0) {
+    return `${hours} h`;
+  }
+
+  return `${minutes} min`;
 };
 
 const formatEventTime = (date: Date) => {

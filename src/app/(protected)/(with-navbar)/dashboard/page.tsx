@@ -6,7 +6,7 @@ import { getDiaperSummary } from "@/lib/queries/diaperQueries";
 import { getFeedSummary } from "@/lib/queries/feedingQueries";
 import { getSleepSummary } from "@/lib/queries/sleepSessionQueries";
 import { formatTimeAgo } from "@/lib/utils/formatTimeAgo";
-import { RecentHistoryList } from "@/components/dashboard/recent-history-list";
+import { RecentHistoryList } from "@/components/dashboard/recentHistoryList";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";

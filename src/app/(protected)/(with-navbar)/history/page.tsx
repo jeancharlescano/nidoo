@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
 import { getDashboardEvents } from "@/lib/queries/dashboardQueries";
-import { HistoryList } from "@/components/history/history-list";
+import { HistoryList } from "@/components/history/historyList";
 
 export default async function HistoryPage() {
   const session = await auth();
