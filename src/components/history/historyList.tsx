@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { deleteDashboardEvent } from "@/lib/actions/dashboard/delete-dashboard-event";
 import { loadHistoryEvents } from "@/lib/actions/history/load-history-events";
+import { formatFeedingType } from "@/lib/utils/formatFeedingType";
 
 type DashboardEvent = {
   id: string;
@@ -32,6 +33,7 @@ export const HistoryList = ({
   const [events, setEvents] = useState(initialEvents);
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLInputElement>(null);
@@ -197,7 +199,7 @@ export const HistoryList = ({
       <p className="mb-3 text-[14px] font-bold capitalize text-[#1f2937]">
         {formatHistoryDate(selectedDate)}
       </p>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 pb-20">
         {events.map((event) => (
           <HistoryEventRow
             key={`${event.type}-${event.id}`}
@@ -219,8 +221,128 @@ export const HistoryList = ({
       {loading && (
         <p className="py-4 text-center text-xs text-[#6b7280]">Chargement...</p>
       )}
+      <div className="fixed bottom-20 left-0 right-0 z-40 px-5">
+        <button
+          type="button"
+          onClick={() => setExportOpen(true)}
+          className="h-[52px] w-full rounded-[14px] border border-[#e5e7eb] bg-white text-[14px] font-semibold text-[#1f2937]"
+        >
+          ⇩ Exporter
+        </button>
+      </div>
+
+      {exportOpen && (
+        <ExportModal
+          babyId={babyId}
+          selectedDate={selectedDate}
+          onClose={() => setExportOpen(false)}
+        />
+      )}
     </div>
   );
+};
+
+const ExportModal = ({
+  babyId,
+  selectedDate,
+  onClose,
+}: {
+  babyId: string;
+  selectedDate: Date;
+  onClose: () => void;
+}) => {
+  const exportHistory = async (period: "day" | "month") => {
+    const params = new URLSearchParams({
+      babyId,
+      date: selectedDate.toISOString(),
+      period,
+    });
+
+    await Promise.all([
+      downloadFile(`/api/history/export/pdf?${params}`),
+      downloadFile(`/api/history/export/csv?${params}`),
+    ]);
+
+    onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-black/30"
+      onClick={onClose}
+    >
+      <div
+        className="w-full rounded-t-[22px] bg-white p-5 pb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <p className="text-[17px] font-semibold text-[#1f2937]">
+              Exporter l’historique
+            </p>
+
+            <p className="mt-1 text-[12px] text-[#6b7280]">
+              Le PDF et le CSV seront téléchargés.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xl text-[#6b7280]"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => exportHistory("day")}
+            className="h-[52px] rounded-[14px] border border-[#e5e7eb] bg-white text-[14px] font-semibold text-[#1f2937]"
+          >
+            Exporter la journée
+          </button>
+
+          <button
+            type="button"
+            onClick={() => exportHistory("month")}
+            className="h-[52px] rounded-[14px] border border-[#e5e7eb] bg-white text-[14px] font-semibold text-[#1f2937]"
+          >
+            Exporter le mois
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const downloadFile = async (url: string) => {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Erreur pendant l'export");
+  }
+
+  const blob = await response.blob();
+
+  const downloadUrl = URL.createObjectURL(blob);
+
+  const disposition = response.headers.get("Content-Disposition");
+
+  const filename = disposition?.match(/filename="(.+)"/)?.[1] ?? "export";
+
+  const link = document.createElement("a");
+
+  link.href = downloadUrl;
+  link.download = filename;
+
+  document.body.appendChild(link);
+
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(downloadUrl);
 };
 
 const HistoryEventRow = ({
@@ -341,7 +463,10 @@ const EventDetailsModal = ({
         <div className="flex flex-col gap-3 text-[14px]">
           {event.type === "feeding" && (
             <>
-              <DetailLine label="Type" value={event.data.type} />
+              <DetailLine
+                label="Type"
+                value={formatFeedingType(event.data.type)}
+              />
 
               {event.data.quantityMl && (
                 <DetailLine
@@ -467,7 +592,7 @@ const getHistoryLabel = (event: DashboardEvent) => {
       return `${event.data.quantityMl} ml`;
     }
 
-    return event.data.type;
+    return formatFeedingType(event.data.type);
   }
 
   if (event.type === "diaper") {
