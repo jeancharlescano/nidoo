@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { auth } from "@/auth";
 
 import { getFamilyBabies } from "@/lib/queries/babyQueries";
-import { getDashboardEvents } from "@/lib/queries/dashboardQueries";
+import { getHistoryEventsByDay } from "@/lib/queries/dashboardQueries";
 import { HistoryList } from "@/components/history/historyList";
 
 export default async function HistoryPage() {
@@ -22,13 +22,9 @@ export default async function HistoryPage() {
   if (!babyId) {
     return null;
   }
+  const today = new Date();
 
-  const { events, nextCursor } = await getDashboardEvents(
-    babyId,
-    10,
-    undefined,
-    false,
-  );
+  const { events, nextCursor } = await getHistoryEventsByDay(babyId, today, 10);
 
   return (
     <main className="px-5 pt-6">
@@ -42,33 +38,11 @@ export default async function HistoryPage() {
         </p>
       </div>
 
-      <div className="mb-6 flex gap-2">
-        <button
-          type="button"
-          className="h-10 rounded-[12px] border border-[#2e8b57] bg-[#eaf6ef] px-4 text-[14px] font-semibold text-[#2e8b57]"
-        >
-          Aujourd’hui
-        </button>
-
-        <button
-          type="button"
-          className="h-10 rounded-[12px] border border-[#e5e7eb] bg-white px-6 text-[14px] text-[#1f2937]"
-        >
-          Hier
-        </button>
-
-        <button
-          type="button"
-          className="h-10 rounded-[12px] border border-[#e5e7eb] bg-white px-6 text-[14px] text-[#1f2937]"
-        >
-          Calendrier
-        </button>
-      </div>
-
       <HistoryList
         babyId={babyId}
         initialEvents={events}
         initialCursor={nextCursor}
+        initialDate={today}
       />
     </main>
   );

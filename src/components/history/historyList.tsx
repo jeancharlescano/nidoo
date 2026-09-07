@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { loadMoreDashboardEvents } from "@/lib/actions/dashboard/load-more-dashboard-events";
 import { deleteDashboardEvent } from "@/lib/actions/dashboard/delete-dashboard-event";
+import { loadHistoryEvents } from "@/lib/actions/history/load-history-events";
 
 type DashboardEvent = {
   id: string;
@@ -16,28 +16,83 @@ type Props = {
   babyId: string;
   initialEvents: DashboardEvent[];
   initialCursor: Date | null;
+  initialDate: Date;
 };
 
 export const HistoryList = ({
   babyId,
   initialEvents,
   initialCursor,
+  initialDate,
 }: Props) => {
   const [selectedEvent, setSelectedEvent] = useState<DashboardEvent | null>(
     null,
   );
+  const [selectedDate, setSelectedDate] = useState(new Date(initialDate));
   const [events, setEvents] = useState(initialEvents);
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLInputElement>(null);
+
+  const handleToday = async () => {
+    const today = new Date();
+
+    const result = await loadHistoryEvents(babyId, today);
+
+    setSelectedDate(today);
+    setEvents(result.events);
+    setCursor(result.nextCursor);
+  };
+
+  const handleYesterday = async () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const result = await loadHistoryEvents(babyId, yesterday);
+
+    setSelectedDate(yesterday);
+    setEvents(result.events);
+    setCursor(result.nextCursor);
+  };
+
+  const handleCalendar = async (value: string) => {
+    console.log("toto");
+    if (!value) return;
+
+    const date = new Date(`${value}T12:00:00`);
+
+    const result = await loadHistoryEvents(babyId, date);
+
+    setSelectedDate(date);
+    setEvents(result.events);
+    setCursor(result.nextCursor);
+  };
+
+  const isSameDay = (date1: Date, date2: Date) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
+  const today = new Date();
+
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isTodaySelected = isSameDay(selectedDate, today);
+  const isYesterdaySelected = isSameDay(selectedDate, yesterday);
+  const isCustomDateSelected = !isTodaySelected && !isYesterdaySelected;
 
   const loadMore = async () => {
     if (!cursor || loading) return;
 
     setLoading(true);
 
-    const result = await loadMoreDashboardEvents(babyId, cursor, 10, false);
+    const result = await loadHistoryEvents(babyId, selectedDate, cursor);
 
     setEvents((previousEvents) => {
       const existingEvents = new Set(
@@ -87,10 +142,61 @@ export const HistoryList = ({
 
   return (
     <div>
-      <p className="mb-3 text-[14px] font-bold text-[#1f2937]">
-        {formatHistoryDate(new Date())}
-      </p>
+      <div className="mb-6 flex gap-2">
+        <button
+          type="button"
+          onClick={handleToday}
+          className={`h-10 rounded-[12px] border px-4 text-[14px] ${
+            isTodaySelected
+              ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
+              : "border-[#e5e7eb] bg-white text-[#1f2937]"
+          }`}
+        >
+          Aujourd’hui
+        </button>
 
+        <button
+          type="button"
+          onClick={handleYesterday}
+          className={`h-10 rounded-[12px] border px-6 text-[14px] ${
+            isYesterdaySelected
+              ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
+              : "border-[#e5e7eb] bg-white text-[#1f2937]"
+          }`}
+        >
+          Hier
+        </button>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              calendarRef.current?.showPicker();
+            }}
+            className={`h-10 rounded-[12px] border px-4 text-[14px] ${
+              isCustomDateSelected
+                ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
+                : "border-[#e5e7eb] bg-white text-[#1f2937]"
+            }`}
+          >
+            Calendrier
+          </button>
+
+          <input
+            ref={calendarRef}
+            type="date"
+            onChange={(e) => {
+              console.log("date choisie :", e.target.value);
+              handleCalendar(e.target.value);
+            }}
+            className="absolute h-0 w-0 opacity-0"
+          />
+        </div>
+      </div>
+
+      <p className="mb-3 text-[14px] font-bold capitalize text-[#1f2937]">
+        {formatHistoryDate(selectedDate)}
+      </p>
       <div className="flex flex-col gap-3">
         {events.map((event) => (
           <HistoryEventRow
