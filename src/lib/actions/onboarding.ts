@@ -14,7 +14,8 @@ export async function onBoardingAction(
   formData: FormData,
 ): Promise<OnboardingState> {
   const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  if (!session?.user?.id) redirect("/auth/login");
+  const userId = session.user.id;
 
   const zodResult = onBoardingSchema.safeParse({
     firstname: formData.get("firstName"),
@@ -28,33 +29,34 @@ export async function onBoardingAction(
     };
   }
 
+  let createdFamily = false;
   try {
-    await prisma.user.update({
-      where: { id: session.user.id },
+    createdFamily = await prisma.$transaction(async (tx) => {
+    const membership = await tx.familyMember.findFirst({ where: { userId } });
+    await tx.user.update({
+      where: { id: userId },
       data: {
         firstName: zodResult.data.firstname,
         lastName: zodResult.data.lastname,
+        onBoarded: true,
       },
     });
 
-    await prisma.family.create({
+    if (membership) return false;
+    await tx.family.create({
       data: {
         name: "Famille de " + zodResult.data.firstname,
         members: {
           create: {
-            userId: session.user.id,
+            userId,
             role: "ADMIN",
           },
         },
       },
     });
 
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        onBoarded: true,
-      },
-    });
+    return true;
+    }, { isolationLevel: "Serializable" });
   } catch (error) {
     console.error("Erreur update user onboarding:", error);
     return {
@@ -62,5 +64,5 @@ export async function onBoardingAction(
     };
   }
 
-  redirect("/add-baby?source=onboarding");
+  redirect(createdFamily ? "/add-baby?source=onboarding" : "/dashboard");
 }

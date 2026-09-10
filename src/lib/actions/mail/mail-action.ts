@@ -19,7 +19,7 @@ export async function inviteMemberAction(
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   const zodResult = emailSchema.safeParse({
@@ -48,7 +48,34 @@ export async function inviteMemberAction(
       return { errors: ["Vous ne faites parti d'aucune famille"] };
     }
 
+    const existingMember = await prisma.familyMember.findFirst({
+      where: { familyId: family.id, user: { email: zodResult.data.email } },
+    });
+    if (existingMember)
+      return { errors: ["Cette personne fait déjà partie de votre famille."] };
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl)
+      return { errors: ["L’adresse de l’application n’est pas configurée."] };
     const token = crypto.randomUUID();
+    const inviteUrl = new URL(`/invite/${token}`, appUrl).toString();
+    const escapeHtml = (value: string) =>
+      value.replace(
+        /[&<>"']/g,
+        (character) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[character]!,
+      );
+    const senderName = escapeHtml(
+      [session.user.firstName, session.user.lastName]
+        .filter(Boolean)
+        .join(" ") || "Un parent",
+    );
 
     await prisma.familyInvitation.create({
       data: {
@@ -62,10 +89,8 @@ export async function inviteMemberAction(
 
     const resend = new Resend(process.env.AUTH_RESEND_KEY);
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
-
     const { error } = await resend.emails.send({
-      from: "Nidoo <onboarding@resend.dev>",
+      from: "Nidoo <nidoo@jccano.fr>",
       to: zodResult.data.email,
       subject: "Invitation à rejoindre Nidoo",
       html: `
@@ -105,12 +130,12 @@ export async function inviteMemberAction(
           line-height: 1.6;
           margin-bottom: 28px;
         ">
-          ${session.user.firstName} ${session.user.lastName} t'invite à rejoindre sa famille sur Nidoo
+          ${senderName} vous invite à rejoindre sa famille sur Nidoo
           afin de suivre ensemble le quotidien de bébé.
         </p>
   
         <a
-          href="${inviteUrl}"
+          href="${escapeHtml(inviteUrl)}"
           style="
             display: block;
             background-color: #4F8A69;

@@ -33,15 +33,15 @@ const InviteMemberForm = () => {
           {state.errors[0]}
         </p>
       )}
-      <Button buttonText="Envoyer l'invitation" />
-      {!state.success && (
+      <Button disabled={pending} buttonText={pending ? "Envoi en cours…" : "Envoyer l'invitation"} />
+      <Link
+        href="/onboarding/summary"
+        className="block text-center mt-2 border border-[#DDE5DF] py-3 w-full rounded-xl text-md font-semibold mb-2 cursor-pointer"
+      >
+        {state.success ? "Étape suivante" : "Passer cette étape"}
+      </Link>
+      {state.success && (
         <>
-          <Link
-            href="/onboarding/summary"
-            className="block text-center mt-2 border border-[#DDE5DF] py-3 w-full rounded-xl text-md font-semibold mb-2 cursor-pointer"
-          >
-            Etape suivante
-          </Link>
           <div className="flex flex-col mt-8 ">
             <p className="font-semibold text-sm text-[#1F2937]">
               ✓ E-mail envoyé

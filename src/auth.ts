@@ -14,7 +14,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   },
   providers: [
     Resend({
-      from: "Nidoo <onboarding@resend.dev>",
+      from: "Nidoo <nidoo@jccano.fr>",
     }),
   ],
   callbacks: {
@@ -28,7 +28,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         "/auth/verify-request",
       ];
 
-      const isPublicRoute = publicRoutes.includes(pathname);
+      const isPublicRoute =
+        publicRoutes.includes(pathname) || /^\/invite\/[^/]+$/.test(pathname);
 
       if (isPublicRoute) {
         return true;

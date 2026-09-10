@@ -12,7 +12,7 @@ const SignUp = () => {
       <SignInForm buttonText="Créer mon compte" />
       <div className="w-full flex justify-center mt-2">
         <Link
-          href="/login"
+          href="/auth/login"
           className=" font-semibold text-sm text-[#4F8A69] hover:underline cursor-pointer"
         >
           Déjà inscrit ? Se connecter
