@@ -148,7 +148,7 @@ export const HistoryList = ({
         <button
           type="button"
           onClick={handleToday}
-          className={`h-10 rounded-[12px] border px-4 text-[14px] ${
+          className={`h-10 rounded-xl border px-4 text-[14px] ${
             isTodaySelected
               ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
               : "border-[#e5e7eb] bg-white text-[#1f2937]"
@@ -160,7 +160,7 @@ export const HistoryList = ({
         <button
           type="button"
           onClick={handleYesterday}
-          className={`h-10 rounded-[12px] border px-6 text-[14px] ${
+          className={`h-10 rounded-xl border px-6 text-[14px] ${
             isYesterdaySelected
               ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
               : "border-[#e5e7eb] bg-white text-[#1f2937]"
@@ -175,7 +175,7 @@ export const HistoryList = ({
             onClick={() => {
               calendarRef.current?.showPicker();
             }}
-            className={`h-10 rounded-[12px] border px-4 text-[14px] ${
+            className={`h-10 rounded-xl border px-4 text-[14px] ${
               isCustomDateSelected
                 ? "border-[#2e8b57] bg-[#eaf6ef] font-semibold text-[#2e8b57]"
                 : "border-[#e5e7eb] bg-white text-[#1f2937]"
@@ -221,11 +221,11 @@ export const HistoryList = ({
       {loading && (
         <p className="py-4 text-center text-xs text-[#6b7280]">Chargement...</p>
       )}
-      <div className="fixed bottom-20 left-0 right-0 z-40 px-5">
+      <div className="fixed bottom-24 left-0 right-0 z-40 px-5">
         <button
           type="button"
           onClick={() => setExportOpen(true)}
-          className="h-[52px] w-full rounded-[14px] border border-[#e5e7eb] bg-white text-[14px] font-semibold text-[#1f2937]"
+          className="h-10 w-full rounded-[14px] border border-[#e5e7eb] bg-white text-[14px] font-semibold text-[#1f2937]"
         >
           ⇩ Exporter
         </button>
