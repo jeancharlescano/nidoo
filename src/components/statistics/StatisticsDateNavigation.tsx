@@ -52,18 +52,23 @@ export default function StatisticsDateNavigation({
     date.setDate(1);
     return date;
   });
+
   const trigger = useRef<HTMLButtonElement>(null);
   const selected = parseDate(selectedDate);
+
   const buttonClass =
     "flex min-h-10 min-w-10 items-center justify-center rounded-xl hover:bg-[#eaf6ef] focus-visible:outline-2 focus-visible:outline-[#2e8b57] disabled:opacity-40";
+
   const close = () => {
     setOpen(false);
     trigger.current?.focus();
   };
+
   const choose = (date: Date) => {
     close();
     void onChange(dateKey(date));
   };
+
   const move = (direction: number) => {
     const date = new Date(selected);
     if (period === "month") {
@@ -73,18 +78,22 @@ export default function StatisticsDateNavigation({
       date.setDate(date.getDate() + direction * (period === "week" ? 7 : 1));
     choose(date);
   };
+
   const moveView = (direction: number) => {
     const date = new Date(view);
     if (period === "month") date.setFullYear(date.getFullYear() + direction);
     else date.setMonth(date.getMonth() + direction);
     setView(date);
   };
+
   const first = weekStart(view);
+
   const days = Array.from({ length: 42 }, (_, index) => {
     const day = new Date(first);
     day.setDate(day.getDate() + index);
     return day;
   });
+
   const isSelected = (date: Date) =>
     period === "week"
       ? dateKey(weekStart(date)) === dateKey(weekStart(selected))
@@ -103,7 +112,7 @@ export default function StatisticsDateNavigation({
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
-      <div className="flex items-center justify-between gap-2 rounded-2xl border border-[#e5e7eb] bg-white p-1.5">
+      <div className="flex items-center justify-between gap-2 rounded-2xl border border-[#e5e7eb] bg-white">
         <button
           type="button"
           className={buttonClass}
