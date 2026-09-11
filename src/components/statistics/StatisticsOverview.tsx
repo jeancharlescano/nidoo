@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import StatisticsDateNavigation, { periodLabel } from "./StatisticsDateNavigation";
 import Link from "next/link";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { loadStatistics } from "@/lib/actions/statistics/load-statistics";
@@ -38,12 +39,12 @@ export default function StatisticsOverview({
   const [error, setError] = useState<string | null>(null);
   const [activePoint, setActivePoint] = useState<number | null>(null);
 
-  const changePeriod = async (period: StatisticsPeriod) => {
-    if (loading || period === data.period) return;
+  const changePeriod = async (period: StatisticsPeriod, selectedDate = data.selectedDate) => {
+    if (loading || (period === data.period && selectedDate === data.selectedDate)) return;
     setLoading(true);
     setError(null);
     try {
-      setData(await loadStatistics(babyId, period));
+      setData(await loadStatistics(babyId, period, selectedDate));
       setActivePoint(null);
     } catch (error) {
       if (isRedirectError(error)) throw error;
@@ -58,6 +59,7 @@ export default function StatisticsOverview({
   const step = Math.max(1, Math.ceil(maximum / 4 / magnitude) * magnitude);
   const axisMaximum = step * 4;
   const selectedPoint = activePoint === null ? null : data.points[activePoint];
+  
   return (
     <div aria-busy={loading} className="text-[#1f2937]">
       <div className="mb-6 flex gap-2" aria-label="Période des statistiques">
@@ -87,7 +89,7 @@ export default function StatisticsOverview({
         {loading ? "Chargement des statistiques…" : ""}
       </p>
       <h2 className="mb-3 text-[14px] font-bold">
-        {periods.find((period) => period.value === data.period)?.title}
+        {periodLabel(data.selectedDate, data.period)}
       </h2>
       <div className="grid grid-cols-2 gap-x-4.5 gap-y-3">
         <SummaryCard
@@ -199,6 +201,13 @@ export default function StatisticsOverview({
             </div>
           </div>
         </div>
+        <StatisticsDateNavigation
+          key={data.period + data.selectedDate}
+          period={data.period}
+          selectedDate={data.selectedDate}
+          loading={loading}
+          onChange={(date) => changePeriod(data.period, date)}
+        />
       </section>
       <Link
         href="/history"

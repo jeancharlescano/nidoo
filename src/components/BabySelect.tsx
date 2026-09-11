@@ -22,7 +22,7 @@ export default function BabySelect({
 
         router.push(`/dashboard?babyId=${babyId}`);
       }}
-      className="text-xl"
+      className="text-xl text-[#4F8A69]"
     >
       {babies.map((baby) => (
         <option key={baby.id} value={baby.id}>

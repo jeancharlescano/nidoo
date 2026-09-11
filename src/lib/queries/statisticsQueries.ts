@@ -6,9 +6,12 @@ export async function getStatistics(
   userId: string,
   babyId: string,
   period: StatisticsPeriod,
+  selectedDate?: string,
 ) {
   const now = new Date();
-  const start = new Date(now);
+  const start = selectedDate
+    ? new Date(`${selectedDate}T00:00:00`)
+    : new Date(now);
   start.setHours(0, 0, 0, 0);
 
   if (period === "week")
@@ -20,6 +23,7 @@ export async function getStatistics(
   if (period === "month") end.setMonth(end.getMonth() + 1);
   else end.setDate(end.getDate() + (period === "week" ? 7 : 1));
 
+  const cutoff = new Date(Math.min(now.getTime(), end.getTime()));
   const previousStart = new Date(start);
 
   if (period === "month") previousStart.setMonth(previousStart.getMonth() - 1);
@@ -31,7 +35,10 @@ export async function getStatistics(
   const previousEnd = new Date(
     Math.min(
       start.getTime(),
-      previousStart.getTime() + now.getTime() - start.getTime(),
+      end <= now
+        ? start.getTime()
+        : previousStart.getTime() +
+            Math.max(0, cutoff.getTime() - start.getTime()),
     ),
   );
 
@@ -41,14 +48,14 @@ export async function getStatistics(
       where: {
         babyId,
         baby,
-        occurredAt: { gte: start, lte: now },
+        occurredAt: { gte: start, lt: end, lte: cutoff },
         type: "BOTTLE",
       },
       select: { occurredAt: true, quantityMl: true },
     }),
 
     prisma.diaperChange.findMany({
-      where: { babyId, baby, occurredAt: { gte: start, lte: now } },
+      where: { babyId, baby, occurredAt: { gte: start, lt: end, lte: cutoff } },
       select: { type: true },
     }),
 
@@ -56,7 +63,7 @@ export async function getStatistics(
       where: {
         babyId,
         baby,
-        startAt: { lt: now },
+        startAt: { lt: cutoff },
         OR: [{ endAt: { gt: start } }, { endAt: null }],
       },
       select: { startAt: true, endAt: true },
@@ -127,7 +134,7 @@ export async function getStatistics(
         sum +
         Math.max(
           0,
-          Math.min((sleep.endAt ?? now).getTime(), now.getTime()) -
+          Math.min((sleep.endAt ?? cutoff).getTime(), cutoff.getTime()) -
             Math.max(sleep.startAt.getTime(), start.getTime()),
         ),
       0,
@@ -137,11 +144,14 @@ export async function getStatistics(
 
   return {
     period,
+    selectedDate: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`,
     points,
     quantityMl,
     sleepMinutes,
     elapsedDays:
-      period === "day" ? 1 : points.filter((point) => !point.future).length,
+      period === "day"
+        ? 1
+        : Math.max(1, points.filter((point) => !point.future).length),
     peeCount: diapers.filter(
       (diaper) => diaper.type === "PEE" || diaper.type === "BOTH",
     ).length,
